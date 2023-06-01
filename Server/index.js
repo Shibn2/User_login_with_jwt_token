@@ -47,18 +47,23 @@ app.post("/signin", async (req, res) => {
   const collection = await db.collection("todo_user_list");
 
   const userData = await collection.findOne({ userName });
-  const { password: passwordFromDb, _id } = userData;
-
-  const passwordMatch = await compare(password, passwordFromDb);
-
-  if (passwordMatch) {
-    const token = jwt.sign(_id, process.env.SECRET_KEY);
-    res.status(201);
-    res.json({ msg: `Welcome, ${userName}`, token });
+  if(userData){
+    console.log('userData', userData);
+    const { password: passwordFromDb, _id } = userData;
+  
+    const passwordMatch = await compare(password, passwordFromDb);
+  
+    if (passwordMatch) {
+      const token = jwt.sign(_id, process.env.SECRET_KEY);
+      res.status(201);
+      res.json({ msg: `Welcome, ${userName}`, token });
+    } else {
+      res.json({ msg: "Password Incorrect!!" });
+    }
   } else {
-    res.json({ msg: "Password Incorrect!!" });
+    res.json({ msg: "Invalid user" });
   }
-  // res.json({ msg: "Testing" });
+  
 });
 
 app.listen(process.env.PORT, () => {
