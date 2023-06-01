@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { compare, hash } from "bcrypt";
 import cors from "cors";
 import db from "./conn.js";
+import { ObjectId } from "mongodb";
 
 // Initialize the express app.
 const app = express();
@@ -15,9 +16,12 @@ app.use(express.json({ extended: true, limit: "1mb" }));
 app.post("/registration", async (req, res) => {
   const { userName, password } = req.body;
 
+  console.log('userName --', userName, 'password', password);
+
   const collection = await db.collection("todo_user_list");
 
   const userData = await collection.findOne({ userName });
+  console.log('userData', userData);
 
   if (userData) {
     res.json({ msg: "Existing user!!" });
@@ -54,9 +58,9 @@ app.post("/signin", async (req, res) => {
     const passwordMatch = await compare(password, passwordFromDb);
   
     if (passwordMatch) {
-      const token = jwt.sign(_id, process.env.SECRET_KEY);
+      const token = jwt.sign(_id.toString(), process.env.SECRET_KEY);
       res.status(201);
-      res.json({ msg: `Welcome, ${userName}`, token });
+      res.json({ msg: `Welcome, ${userName}`, token, id: _id.toString() });
     } else {
       res.json({ msg: "Password Incorrect!!" });
     }
@@ -65,6 +69,20 @@ app.post("/signin", async (req, res) => {
   }
   
 });
+
+app.post('/delete', async(req,res)=>{
+  const { id } = req.body;
+  console.log('id received', id);
+  const collection = await db.collection("todo_user_list");
+
+  const { deletedCount, acknowledged } = await collection.deleteOne({ _id: new ObjectId(id) });
+  console.log('ack-->', ack);
+  if(acknowledged){
+    res.json({ msg: 'Account deleted!!'})
+  } else {
+    res.json({ msg: "Delete failed" });
+  }
+})
 
 app.listen(process.env.PORT, () => {
   console.log("Server running at ", process.env.PORT);

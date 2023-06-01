@@ -28,15 +28,18 @@ export const SignIn = ({ setUserRegistered, setValidUser }) => {
     const res = await sendResp.json();
     console.log("received response", res);
     if (sendResp.status === 201) {
-      const { msg, token } = res;
+      const { id, msg, token } = res;
       console.log("valid user --->>");
       sessionStorage.setItem("isPersistentUser", true);
       sessionStorage.setItem("userToken", token);
+      sessionStorage.setItem("userId", id);
+      sessionStorage.setItem("userName", userData.userName);
+
       setUserRegistered(true);
-      setValidUser(true);
+      setValidUser({ name: userData.userName });
     } else {
       setUserRegistered(false);
-      setValidUser(false);
+      setValidUser({});
     }
   };
 
